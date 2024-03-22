@@ -1,0 +1,19 @@
+@import '~xterm/css/xterm.css';
+
+body {
+    background-color:#12182a;
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+    padding:0;
+  }
+
+.container {
+    flex-grow:1;
+}  
+
+.footer {
+  height: 40px;
+  color:wheat;
+  font-weight:bold;
+}
