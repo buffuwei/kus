@@ -3,7 +3,7 @@ kus is a simple terminal UI for kuboard.
 # Installation
 
 ```sh
-wget https://github.com/buffuwei/kus/releases/download/v0.1/kus -O kus && chmod +x kus && mv kus /usr/local/bin/kus
+wget https://github.com/buffuwei/kus/releases/download/v0.1.0/kus && chmod +x kus && mv kus /usr/local/bin/kus
 ```
 
 or 
