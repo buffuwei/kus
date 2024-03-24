@@ -1,26 +1,29 @@
-kus is a terminal UI for kuboard.
+kus is a simple terminal UI for kuboard.
 
 # Installation
 
-## download
+```sh
+wget https://github.com/buffuwei/kus/releases/download/v0.1/kus -O kus && chmod +x kus && mv kus /usr/local/bin/kus
+```
 
+or 
 
-## install
 `sh install.sh`
 
-# Description
+# Configuration
 
-Configuration file path `~/.kus/config.yaml`
+Configuration file path: `~/.kus/config.yaml`
 
 Example:
 ```yaml
 kuboard:
-    host: kuboard.xxx.net
+    host: kuboard.xxx.yyy
     username: Bob
     password: pass
     clusters:
         - DEV
+        - TEST
 selected:
     cluster: DEV
-    namespace: dev
+    namespace: business
 ```
