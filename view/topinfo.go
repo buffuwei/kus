@@ -7,8 +7,7 @@ import (
 	"github.com/rivo/tview"
 )
 
-var Version string = "0.1"
-var Commit string
+var Version string = "latest"
 
 type TopInfo struct {
 	*tview.Flex
@@ -24,7 +23,7 @@ func (podtable *PortalF) SetTopInfo() *PortalF {
 		podtable: podtable,
 		info:     tview.NewTextView().SetTextColor(tcell.ColorYellowGreen),
 		helps:    newHelps(),
-		logo:     tview.NewTextView().SetText(fmt.Sprintf(LOGO, Version, Commit)).SetTextColor(LOGO_COLOR),
+		logo:     tview.NewTextView().SetText(fmt.Sprintf(LOGO, Version)).SetTextColor(LOGO_COLOR),
 		Flex:     tview.NewFlex().SetDirection(tview.FlexColumn),
 		C:        make(chan string, 10),
 	}
@@ -71,8 +70,8 @@ func (topInfo *TopInfo) refresh() {
 
 var LOGO string = `_  ___   _ ___ 
 | |/ / | | / __|
-| ' <| |_| \__ \  Version: %s
-|_|\_\\___/|___/  Commit: %s`
+| ' <| |_| \__ \
+|_|\_\\___/|___/  Version: %s`
 
 var infoTmpl string = `Cluster: %s
 Namespace: %s

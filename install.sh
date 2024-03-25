@@ -1,5 +1,6 @@
 #!/bin/sh
-npm run build:prod --prefix frontend
-commit=`git rev-parse --short  HEAD`
-echo "commit: $commit"
-go install -ldflags "-X buffuwei/kus/view.Commit=$commit" 
+# When you need to rebuild frontend, you can uncomment the following line
+# npm run build:prod --prefix frontend
+tag=`git describe --tags --abbrev=0`
+echo "tag: $tag"
+go install -ldflags "-X buffuwei/kus/view.Version=$tag" 
