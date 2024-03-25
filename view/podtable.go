@@ -306,7 +306,7 @@ func getColor(ready bool, elapsed int64) tcell.Color {
 		return tcell.GetColor("#FF4400")
 	}
 	if elapsed < 60*10 {
-		return tcell.GetColor("#07BC2A")
+		return LOGO_COLOR
 	}
 	return CYAN_COLOR
 }
