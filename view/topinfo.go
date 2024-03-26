@@ -71,7 +71,7 @@ func (topInfo *TopInfo) refresh() {
 var LOGO string = `_  ___   _ ___ 
 | |/ / | | / __|
 | ' <| |_| \__ \
-|_|\_\\___/|___/  Version: %s`
+|_|\_\\___/|___/  %s`
 
 var infoTmpl string = `Cluster: %s
 Namespace: %s
