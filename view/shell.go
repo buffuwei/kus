@@ -155,7 +155,6 @@ func (shell *ShellF) NewExecutor(v *Vessel) *Executor {
 
 				ba, _ := base64.StdEncoding.DecodeString(string(bs)[1:])
 				ansiW.Write(ba)
-				exec.out.ScrollToEnd()
 
 				cleanedText := colorRegex.ReplaceAllString(string(ba), "")
 				file.Write([]byte(cleanedText))
@@ -209,12 +208,10 @@ func (exec *Executor) setOut() *Executor {
 		SetChangedFunc(func() {
 			exec.shell.kusApp.Draw()
 		}).
-		SetWrap(true).SetWordWrap(true).
+		SetWrap(true).
+		SetWordWrap(true).
 		ScrollToEnd().
 		SetTextColor(tcell.GetColor("#2CAD00")).
-		// SetTitle(" Out " + exec.outFilePath + " ").
-		// SetTitleColor(LOGO_COLOR).
-		// SetBorder(true).
 		SetBorderColor(tcell.ColorYellowGreen)
 
 	return exec

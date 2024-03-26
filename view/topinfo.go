@@ -16,6 +16,7 @@ type TopInfo struct {
 	helps    *tview.Flex
 	logo     *tview.TextView
 	C        chan string
+	spinner  *Spinner
 }
 
 func (podtable *PortalF) SetTopInfo() *PortalF {
@@ -23,9 +24,10 @@ func (podtable *PortalF) SetTopInfo() *PortalF {
 		podtable: podtable,
 		info:     tview.NewTextView().SetTextColor(tcell.ColorYellowGreen),
 		helps:    newHelps(),
-		logo:     tview.NewTextView().SetText(fmt.Sprintf(LOGO, Version)).SetTextColor(LOGO_COLOR),
+		logo:     tview.NewTextView().SetText(fmt.Sprintf(LOGO, "", Version)).SetTextColor(LOGO_COLOR),
 		Flex:     tview.NewFlex().SetDirection(tview.FlexColumn),
 		C:        make(chan string, 10),
+		spinner:  newSpinner(),
 	}
 	t.AddItem(t.info, 0, 1, false).
 		AddItem(t.helps, 0, 4, false).
@@ -40,6 +42,10 @@ func (podtable *PortalF) SetTopInfo() *PortalF {
 
 	podtable.topInfo = t
 	return podtable
+}
+
+func (topInfo *TopInfo) beforeAppDraw() {
+	topInfo.logo.SetText(fmt.Sprintf(LOGO, topInfo.spinner.next(), Version))
 }
 
 func (topInfo *TopInfo) handle(msg string) {
@@ -68,9 +74,26 @@ func (topInfo *TopInfo) refresh() {
 	topInfo.info.SetText(i)
 }
 
+type Spinner struct {
+	p   int
+	all []string
+}
+
+func newSpinner() *Spinner {
+	return &Spinner{
+		p:   0,
+		all: []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"},
+	}
+}
+
+func (s *Spinner) next() string {
+	s.p++
+	return s.all[s.p%len(s.all)]
+}
+
 var LOGO string = `_  ___   _ ___ 
 | |/ / | | / __|
-| ' <| |_| \__ \
+| ' <| |_| \__ \  %s
 |_|\_\\___/|___/  %s`
 
 var infoTmpl string = `Cluster: %s

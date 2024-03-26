@@ -77,6 +77,11 @@ func newKusApp() *KusApp {
 		return event
 	})
 
+	kusApp.SetBeforeDrawFunc(func(screen tcell.Screen) bool {
+		kusApp.Portal.topInfo.beforeAppDraw()
+		return false
+	})
+
 	return kusApp
 }
 
