@@ -11,7 +11,7 @@ import (
 
 func TestWsExec(t *testing.T) {
 	fmt.Printf("Begin ws exec connecting \n")
-	conn, err := WsExec(" ", " ", " ", " ")
+	conn, err := WsExec(" ", " ", " ", " ", "")
 	if err != nil {
 		fmt.Printf("ws exec conn error %s", err.Error())
 	}

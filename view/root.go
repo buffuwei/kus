@@ -91,7 +91,7 @@ func prerequisite() {
 		password := tools.GetConfig().Kuboard.Password
 		token, err := kuboard.NewToken(username, password)
 		if err != nil {
-			fmt.Printf("%s (network or login problem)\n", err.Error())
+			fmt.Printf("%s (failed to get kuboard token)\n", err.Error())
 			fmt.Printf("please check your config file: %s \n", tools.ConfigPath())
 			os.Exit(1)
 		}

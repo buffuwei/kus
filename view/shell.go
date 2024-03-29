@@ -109,7 +109,7 @@ func (shell *ShellF) GetExector(v *Vessel) *Executor {
 
 func (shell *ShellF) NewExecutor(v *Vessel) *Executor {
 	ctx, cancel := context.WithCancel(context.Background())
-	conn, _ := kuboard.WsExec(v.cluster, v.ns, v.pod, v.container)
+	conn, _ := kuboard.WsExec(v.cluster, v.ns, v.pod, v.container, "sh")
 	exec := &Executor{
 		shell:       shell,
 		vessel:      v,
