@@ -164,7 +164,7 @@ func ping(podConn, termConn *websocket.Conn) {
 	ticker := time.NewTicker(time.Second * 5)
 	for range ticker.C {
 		podConn.WriteMessage(websocket.TextMessage, []byte("0"))
-		termConn.WriteMessage(websocket.TextMessage, []byte("0"))
+		termConn.WriteMessage(websocket.TextMessage, []byte("0DQ=="))
 	}
 }
 

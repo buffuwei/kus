@@ -73,7 +73,7 @@ ws.onopen = function () {
 var fristMsgReceived = false;
 
 ws.onmessage = function (event) {
-    if (event.data === "0") {
+    if (event.data === "0DQ==") {
         // ignore
     } else {
         if (!fristMsgReceived) {
