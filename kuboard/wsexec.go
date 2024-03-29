@@ -13,9 +13,9 @@ import (
 // wss://kuboard.xxxxx.net
 // /k8s-ws/CLUSTER/api/v1/namespaces/NS/pods/content-server-686c8b447c-fnzwh/exec?
 // stdin=true&stdout=true&stderr=true&tty=true&command=%2Fbin%2Fbash&container=content-server
-func WsExec(cluster, ns, pod, container string) (*websocket.Conn, error) {
+func WsExec(cluster, ns, pod, container, whichSh string) (*websocket.Conn, error) {
 	path := fmt.Sprintf("/k8s-ws/%s/api/v1/namespaces/%s/pods/%s/exec", cluster, ns, pod)
-	query := fmt.Sprintf("stdin=true&stdout=true&stderr=true&tty=true&command=/bin/sh&container=%s", container)
+	query := fmt.Sprintf("stdin=true&stdout=true&stderr=true&tty=true&command=/bin/%s&container=%s", whichSh, container)
 	u := url.URL{
 		Scheme:   "wss",
 		Host:     Host(),
@@ -42,10 +42,10 @@ func afterConnected(conn *websocket.Conn) {
 		time.AfterFunc(time.Millisecond*100, func() {
 			WriteBytes(conn, []byte("\r"))
 		})
-		time.AfterFunc(time.Millisecond*300, func() {
+		time.AfterFunc(time.Millisecond*250, func() {
 			WriteBytes(conn, []byte("\r"))
 		})
-		time.AfterFunc(time.Millisecond*500, func() {
+		time.AfterFunc(time.Millisecond*400, func() {
 			WriteBytes(conn, []byte("\r"))
 		})
 	}

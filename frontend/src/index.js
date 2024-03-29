@@ -24,8 +24,8 @@ term.attachCustomKeyEventHandler(function (event) {
         if (arg.metaKey && arg.code === "KeyV" && arg.type === "keydown") {
             navigator.clipboard.readText()
               .then(text => {
-                // term.write(text);
-                ws.send(text);
+                let msg = "0" + btoa(text)
+                ws.send(msg);
               })
         };
         return true;
@@ -35,25 +35,34 @@ term.attachCustomKeyEventHandler(function (event) {
 });
 
 const fitAddon =  new FitAddon()
-term.loadAddon(fitAddon);
-term.open(document.getElementById("terminal"));
+fitAddon.activate(term)
+
+let containerEle = document.getElementById("terminal")
+term.open(containerEle);
 term.focus();
-// 监听键盘输入
+
 term.onKey(function (e) {
-    ws.send(e.key);
+    let msg = "0" + btoa(e.key)
+    ws.send(msg);
 });
 
-fitAddon.fit();
-// 监听窗口大小变化事件
+term.onResize(function (e) {
+    let s = JSON.stringify({"Width":e.cols,"Height":e.rows})
+    let msg = "4" + btoa(s);
+    ws.send(msg)
+})
+
 window.addEventListener("resize", function () {
+    console.log("window resize event listened")
     fitAddon.fit();
 });
 
+let pageURL = new URL(window.location.href)
 let clu = document.getElementById("cluster").innerText.trim();
 let ns = document.getElementById("ns").innerText.trim();
 let pod = document.getElementById("pod").innerText.trim();
 let container = document.getElementById("container").innerText.trim();
-let url = "ws://localhost:9900/ws?cluster="+clu+"&ns="+ns+"&pod="+pod+"&container="+container;
+let url = "ws://localhost:"+pageURL.port+"/ws?cluster="+clu+"&ns="+ns+"&pod="+pod+"&container="+container;
 console.log(url);
 
 const ws = new WebSocket(url);
@@ -61,10 +70,17 @@ ws.onopen = function () {
     console.log("WebSocket connection opened");
 };
 
+var fristMsgReceived = false;
+
 ws.onmessage = function (event) {
     if (event.data === "0") {
         // ignore
     } else {
+        if (!fristMsgReceived) {
+            console.log("First msg", event.data)
+            fristMsgReceived = true;
+            fitAddon.fit();
+        }
         term.write(event.data);
     }
 };

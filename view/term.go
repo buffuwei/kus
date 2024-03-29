@@ -113,7 +113,7 @@ func handleWs(c *gin.Context) {
 		defer termConn.Close()
 	}
 
-	podConn, _ := kuboard.WsExec(cluster, ns, pod, container)
+	podConn, _ := kuboard.WsExec(cluster, ns, pod, container, "bash")
 	if podConn == nil {
 		m := fmt.Sprintf("executor not found [%s][%s][%s][%s]", cluster, ns, pod, container)
 		termConn.WriteMessage(websocket.TextMessage, []byte(m))
@@ -135,7 +135,7 @@ func handleWs(c *gin.Context) {
 				return
 			}
 			ba, _ := base64.StdEncoding.DecodeString(string(bs)[1:])
-			zap.S().Debugf("Term output: [%s]\n", string(ba))
+			zap.S().Infof("Term output: [%s]\n", string(ba))
 			termConn.WriteMessage(websocket.TextMessage, ba)
 		}
 	}()
@@ -152,21 +152,10 @@ func handleWs(c *gin.Context) {
 				continue
 			}
 			zap.S().Debugf("Term input: [%s]\n", string(message))
-			kuboard.WriteBytes(podConn, message)
+			podConn.WriteMessage(websocket.TextMessage, []byte(message))
+			// kuboard.WriteBytes(podConn, message)
 		}
 	}()
-
-	// move to conn creation
-	// podConn.WriteMessage(websocket.TextMessage, []byte("4"+base64.StdEncoding.EncodeToString([]byte(`{"Width":150,"Height":15}`))))
-	// time.AfterFunc(time.Millisecond*100, func() {
-	// 	kuboard.WriteBytes(podConn, []byte("\r"))
-	// })
-	// time.AfterFunc(time.Millisecond*300, func() {
-	// 	kuboard.WriteBytes(podConn, []byte("\r"))
-	// })
-	// time.AfterFunc(time.Millisecond*500, func() {
-	// 	kuboard.WriteBytes(podConn, []byte("\r"))
-	// })
 
 	ping(podConn, termConn)
 }
