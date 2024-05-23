@@ -1,5 +1,6 @@
 import { Terminal } from 'xterm';
 import { FitAddon } from 'xterm-addon-fit';
+import { Buffer } from 'buffer';
 import './style.css'
 
 console.log("Hello kus-term!");
@@ -24,7 +25,7 @@ term.attachCustomKeyEventHandler(function (event) {
         if (arg.metaKey && arg.code === "KeyV" && arg.type === "keydown") {
             navigator.clipboard.readText()
               .then(text => {
-                let msg = "0" + btoa(text)
+                let msg = "0" + Buffer.from(text).toString("base64")
                 ws.send(msg);
               })
         };
@@ -70,7 +71,7 @@ ws.onopen = function () {
     console.log("WebSocket connection opened");
 };
 
-var fristMsgReceived = false;
+let fristMsgReceived = false;
 
 ws.onmessage = function (event) {
     if (event.data === "0DQ==") {

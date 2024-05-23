@@ -6,6 +6,7 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+	"go.uber.org/zap"
 )
 
 type ClusterF struct {
@@ -79,6 +80,7 @@ func (kusApp *KusApp) SetCluster() *KusApp {
 
 	cf.filter.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEnter {
+			zap.S().Infof("cluster filter entered \n")
 			refreshClusterNs(cf)
 			cf.kusApp.SetFocus(cf.tree)
 			return nil
@@ -125,7 +127,5 @@ func refreshClusterNs(cf *ClusterF) {
 				clusterNode.AddChild(nsNode)
 			}
 		}
-
-		cf.kusApp.Draw()
 	}
 }
