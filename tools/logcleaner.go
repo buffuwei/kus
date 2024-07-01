@@ -24,7 +24,7 @@ func Clean(dir string) {
 			filePath := dir + "/" + fileInfo.Name()
 			fi, _ := os.Stat(filePath)
 
-			if fi.ModTime().Before(time.Now().AddDate(0, 0, -7)) &&
+			if fi.ModTime().Before(time.Now().AddDate(0, 0, -2)) &&
 				exp.MatchString(fileInfo.Name()) {
 				os.Remove(filePath)
 				zap.S().Infof("remove file %s success \n", filePath)

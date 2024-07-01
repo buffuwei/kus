@@ -26,7 +26,7 @@ func (kusApp *KusApp) SetCluster() *KusApp {
 	kusApp.Cluster = cf
 
 	cf.filter.SetFieldStyle(tcell.StyleDefault).
-		SetText("community").
+		SetText("comm").
 		SetLabel(" 🐶 Filter: ").
 		SetLabelColor(LOGO_COLOR).
 		SetFieldTextColor(tcell.ColorGreen).

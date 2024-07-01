@@ -103,19 +103,20 @@ func podTableInputCapture(podTable *PodTable) func(event *tcell.EventKey) *tcell
 			} else if event.Key() == tcell.KeyCtrlK {
 				podTable.KillPod(vessel)
 			} else if event.Rune() == 'L' {
-				portal.kusApp.Logger.OpenLogView(vessel)
+				portal.kusApp.Logger.OpenLogBackground(vessel)
 			} else if event.Rune() == 'l' {
 				portal.kusApp.Logger.LoggingInTmux(vessel)
 			} else if event.Key() == tcell.KeyCtrlL {
 				portal.kusApp.Logger.CloseLogger(vessel)
 			} else if event.Key() == tcell.KeyEsc {
 				changed := podTable.portal.resetFilter("")
+				zap.S().Infoln("reset filter", changed)
 				if changed {
 					podTable.Refresh(1, true, true, false)
 				}
-			} else if event.Rune() == 's' {
-				portal.kusApp.Shell.Open(vessel)
 			} else if event.Rune() == 'S' {
+				portal.kusApp.Shell.Open(vessel)
+			} else if event.Rune() == 's' {
 				openTerm(vessel)
 			} else if event.Key() == tcell.KeyCtrlC {
 				portal.kusApp.Stop()

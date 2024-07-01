@@ -91,28 +91,23 @@ func (s *Spinner) next() string {
 	return s.all[s.p%len(s.all)]
 }
 
-var LOGO string = `_  ___   _ ___ 
-| |/ / | | / __|
+var LOGO string = `| |/ / | | / __|
 | ' <| |_| \__ \  %s
 |_|\_\\___/|___/  %s`
 
-var infoTmpl string = `Cluster: %s
-Namespace: %s
+var infoTmpl string = `Cluster-NS: %s %s
 Logger: %s
 Shell: %s
 `
 
 var help1 string = `<:> Command input
-</> Fileter input
-<s/S> Sh embed / web
-<l/L> Log viewer`
+</> Fileter input`
 
-var help2 string = `<:ctx>  Show cluster-ns page
-<ctrl-q> Quit`
+var help2 string = `<s/S> Shell
+<l/L> Logger`
 
 var help3 string = ``
 
 var help4 string = `<j/k>     Up / Down
 <g/G>     Top / Bottom
-<ctrl-b>  Page Up
-<ctrl-f>  Page Down`
+<ctrl-b/f>  Page Up / Down`

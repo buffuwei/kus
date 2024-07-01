@@ -28,7 +28,7 @@ func (kusApp *KusApp) SetCacher() *KusApp {
 	kusApp.Cacher = cache
 
 	go func() {
-		ticker := time.NewTicker(time.Second * 5)
+		ticker := time.NewTicker(time.Second * 3)
 		for range ticker.C {
 			cache.CacheKuPods("", "", false)
 		}

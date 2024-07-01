@@ -78,7 +78,7 @@ func GetWriteSyncer() zapcore.WriteSyncer {
 
 // GetLevelEnabler 自定义的LevelEnabler
 func GetLevelEnabler() zapcore.Level {
-	return zapcore.InfoLevel
+	return zapcore.DebugLevel
 }
 
 // cEncodeLevel 自定义日志级别显示

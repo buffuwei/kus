@@ -17,6 +17,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/rivo/tview"
 	"go.uber.org/zap"
+	"golang.design/x/clipboard"
 )
 
 // Logger is a reader from container ws connection and writer to log file
@@ -193,6 +194,16 @@ func (lv *LoggerF) OpenLogView(vessel *Vessel) {
 	lv.textView.SetTitle(fmt.Sprintf(" Logger %s ", logger.logFilePath))
 	lv.textView.ScrollToEnd()
 	zap.S().Infof("Finished view log %v \n", vessel)
+}
+
+func (lf *LoggerF) OpenLogBackground(vessel *Vessel) {
+	logger := lf.GetLogger(vessel)
+	if logger == nil {
+		clipboard.Write(clipboard.FmtText, []byte("Logger not found"))
+		lf.kusApp.ShowErr("Logger not found 😭")
+		return
+	}
+	clipboard.Write(clipboard.FmtText, []byte(logger.logFilePath))
 }
 
 // new a logger or get existed logger

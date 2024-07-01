@@ -104,7 +104,7 @@ func (portal *PortalF) setInputCmd() *PortalF {
 		SetFieldTextColor(tcell.ColorGreen).
 		SetAcceptanceFunc(
 			func(textToCheck string, lastChar rune) bool {
-				zap.S().Infof("%s , %v \n", textToCheck, lastChar)
+				// zap.S().Infof("%s , %v \n", textToCheck, lastChar)
 				return lastChar != 47 && lastChar != 58 && lastChar != 59 // discard '/' ':' ';'
 			})
 	inputCmd.SetBorder(true).SetBorderColor(CYAN_COLOR)
@@ -150,6 +150,7 @@ func (portal *PortalF) setInputFilter() *PortalF {
 		if event.Key() == tcell.KeyEnter {
 			keyword := strings.Trim(inputFilter.GetText(), " ")
 			changed := portal.resetFilter(keyword)
+			zap.S().Debugf("filter input %s %v \n", keyword, changed)
 			if changed {
 				portal.podTable.Refresh(1, true, true, false)
 			} else {
@@ -157,6 +158,7 @@ func (portal *PortalF) setInputFilter() *PortalF {
 			}
 		} else if event.Key() == tcell.KeyEsc {
 			changed := portal.resetFilter("")
+			zap.S().Infoln("reset filter", changed)
 			if changed {
 				portal.podTable.Refresh(1, true, true, false)
 			} else {
@@ -186,7 +188,7 @@ type PortalLayout struct {
 func (portal *PortalF) defaultLayout() *PortalF {
 	portal.layout = &PortalLayout{
 		top:             portal.topInfo,
-		topFixedSize:    4,
+		topFixedSize:    3,
 		topProportion:   0,
 		input:           portal.inputCmd,
 		inputFixedSize:  3,
