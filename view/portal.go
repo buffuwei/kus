@@ -20,6 +20,7 @@ type PortalF struct {
 	filterChangedMicorTime int64
 	podTable               *PodTable
 	layout                 *PortalLayout
+	prevLayout             PortalLayout // previous layout before update
 	cluster                string
 	namespace              string
 }
@@ -41,11 +42,12 @@ func (kusApp *KusApp) SetPortal() *KusApp {
 	}
 	kusApp.Portal = portal
 
-	kusApp.Portal.SetTopInfo().
+	kusApp.Portal.
+		SetTopInfo().
 		setPodtable().
 		setInputCmd().
 		setInputFilter().
-		defaultLayout().
+		setDefaultLayout().
 		SetInputCapture(portalInputCapture(portal))
 
 	return kusApp
@@ -97,7 +99,7 @@ func (portal *PortalF) setInputCmd() *PortalF {
 	inputCmd := tview.NewInputField().
 		SetLabel("🐮 CMD: ").SetLabelColor(LOGO_COLOR).
 		SetFieldWidth(0).
-		SetPlaceholder(" ctx / cluster ...").
+		SetPlaceholder(" ctx / cluster / p / pipeline ...").
 		SetPlaceholderTextColor(tcell.ColorGreen).
 		SetPlaceholderStyle(tcell.StyleDefault.Background(tcell.ColorBlack)).
 		SetFieldBackgroundColor(tcell.ColorBlack).
@@ -114,11 +116,19 @@ func (portal *PortalF) setInputCmd() *PortalF {
 			if key == tcell.KeyEnter {
 				cmd := strings.ToLower(strings.Trim(inputCmd.GetText(), " "))
 				switch cmd {
-				case "cluster", "clu", "ctx":
+				case "cluster", "ctx":
 					portal.kusApp.Root.SwitchToPage("cluster")
+				case "pipeline", "p":
+					portal.kusApp.Root.SwitchToPage("pipeline")
 				default:
 				}
 			}
+		}).
+		SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+			if event.Key() == tcell.KeyEsc {
+				portal.podTable.OnlyFocus()
+			}
+			return event
 		})
 
 	portal.inputCmd = inputCmd
@@ -185,7 +195,7 @@ type PortalLayout struct {
 	foucus          tview.Primitive
 }
 
-func (portal *PortalF) defaultLayout() *PortalF {
+func (portal *PortalF) setDefaultLayout() *PortalF {
 	portal.layout = &PortalLayout{
 		top:             portal.topInfo,
 		topFixedSize:    3,
@@ -205,9 +215,21 @@ func (portal *PortalF) defaultLayout() *PortalF {
 
 func (portal *PortalF) refreshLayout() *PortalF {
 	// TODO compare if changed
+	// zap.S().Debugf("refreshLayout will clear flex firstly \n")
 	portal.Flex.Clear()
 
 	layout := portal.layout
+
+	b1 := portal.prevLayout.top == layout.top
+	b2 := portal.prevLayout.topFixedSize == layout.topFixedSize
+	b3 := portal.prevLayout.topProportion == layout.topProportion
+	zap.S().Infof("refreshLayout b1=%v b2=%v b3=%v\n", b1, b2, b3)
+	c1 := portal.prevLayout.input == layout.input
+	c2 := portal.prevLayout.inputFixedSize == layout.inputFixedSize
+	c3 := portal.prevLayout.inputProportion == layout.inputProportion
+	e := portal.prevLayout.foucus == layout.foucus
+	zap.S().Infof("refreshLayout c1=%v c2=%v c3=%v e=%v\n", c1, c2, c3, e)
+
 	if layout.top != nil {
 		focus := layout.foucus == layout.top
 		portal.Flex.AddItem(layout.top, layout.topFixedSize, layout.topProportion, focus)
@@ -220,6 +242,8 @@ func (portal *PortalF) refreshLayout() *PortalF {
 		focus := layout.foucus == layout.body
 		portal.Flex.AddItem(layout.body, layout.bodyFixedSize, layout.bodyProportion, focus)
 	}
+
+	portal.prevLayout = *layout
 
 	// TODO ??
 	portal.kusApp.SetFocus(portal.kusApp.Portal)

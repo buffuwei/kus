@@ -3,6 +3,7 @@ package view
 import (
 	"buffuwei/kus/kuboard"
 	"buffuwei/kus/tools"
+	"buffuwei/kus/wings"
 	"fmt"
 	"sort"
 	"strings"
@@ -19,6 +20,8 @@ type PodTable struct {
 	filterKey   string
 	sortKey     SortKey
 	terminating []VesselID
+	selectedRow *Vessel
+	actionModal *PodActionModal
 }
 
 type Vessel struct {
@@ -41,11 +44,12 @@ const (
 
 func (portal *PortalF) setPodtable() *PortalF {
 	podTable := &PodTable{
-		Table:     tview.NewTable(),
-		portal:    portal,
-		refresCh:  make(chan Action, 5),
-		filterKey: "",
-		sortKey:   SortKeyNameAsc,
+		Table:       tview.NewTable(),
+		portal:      portal,
+		refresCh:    make(chan Action, 5),
+		filterKey:   "",
+		sortKey:     SortKeyNameAsc,
+		selectedRow: nil,
 	}
 	portal.podTable = podTable
 
@@ -58,15 +62,38 @@ func (portal *PortalF) setPodtable() *PortalF {
 		SetBorderPadding(0, 0, 2, 0).
 		SetBorderStyle(tcell.StyleDefault.Foreground(CYAN_COLOR))
 
-	podTable.SetInputCapture(podTableInputCapture(podTable))
+	// podTable.actionModal = podTable.NewPodActionModal()
+
+	fistCapture := func(event *tcell.EventKey) *tcell.EventKey {
+		row, _ := podTable.GetSelection()
+		vessel, ok := podTable.GetCell(row, 0).GetReference().(*Vessel)
+		if ok {
+			podTable.selectedRow = vessel
+		} else {
+			zap.S().Errorf("Failed get pod ref vessel at row %d \n", row)
+		}
+		return event
+	}
+
+	podTable.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		fistCapture(event)
+		return podTableInputCapture(podTable)(event)
+	})
+
+	podTable.SetSelectionChangedFunc(func(row, column int) {
+		zap.S().Debugf("podTable row changed to %d %d \n", row, column)
+		if podTable.actionModal != nil {
+			podTable.actionModal.close()
+		}
+	})
 
 	go func() {
 		for {
 			select {
 			case p := <-podTable.refresCh:
-				podTable.renewPodTable(p.selectWhichRow, p.scrollToBeginning, false)
+				podTable.refresh(p.selectWhichRow, p.scrollToBeginning, false)
 			case v := <-portal.kusApp.Cacher.podsReCached:
-				podTable.renewPodTable(-1, v.Changed, true)
+				podTable.refresh(-1, v.Changed, true)
 			}
 		}
 	}()
@@ -76,6 +103,7 @@ func (portal *PortalF) setPodtable() *PortalF {
 
 func podTableInputCapture(podTable *PodTable) func(event *tcell.EventKey) *tcell.EventKey {
 	return func(event *tcell.EventKey) *tcell.EventKey {
+		zap.S().Debugf("podTable capture input: %v \n", event)
 		portal := podTable.portal
 		if portal.layout.body == podTable {
 			row, _ := podTable.GetSelection()
@@ -109,6 +137,12 @@ func podTableInputCapture(podTable *PodTable) func(event *tcell.EventKey) *tcell
 			} else if event.Key() == tcell.KeyCtrlL {
 				portal.kusApp.Logger.CloseLogger(vessel)
 			} else if event.Key() == tcell.KeyEsc {
+				if podTable.actionModal != nil {
+					if podTable.actionModal.close() {
+						return nil
+					}
+				}
+
 				changed := podTable.portal.resetFilter("")
 				zap.S().Infoln("reset filter", changed)
 				if changed {
@@ -120,6 +154,10 @@ func podTableInputCapture(podTable *PodTable) func(event *tcell.EventKey) *tcell
 				openTerm(vessel)
 			} else if event.Key() == tcell.KeyCtrlC {
 				portal.kusApp.Stop()
+			} else if event.Key() == tcell.KeyEnter {
+				// TODO:
+				podTable.setPodActionModal2(vessel)
+				return nil
 			}
 		}
 		return event
@@ -140,12 +178,6 @@ func (podTable *PodTable) Refresh(selectRow int, scrollToBeginning, tableFocus, 
 	}
 }
 
-func (podTable *PodTable) Show() {
-	podTable.portal.layout.body = podTable
-	podTable.portal.layout.foucus = podTable
-	podTable.portal.refreshLayout()
-}
-
 func (podTable *PodTable) OnlyFocus() {
 	podTable.portal.layout.foucus = podTable
 	podTable.portal.kusApp.SetFocus(podTable)
@@ -155,7 +187,7 @@ func (podTable *PodTable) OnlyFocus() {
 // 加载pod数据到table, selectRow表示选中第几行
 // scrollToBeginning 是否滚动到头部
 // onFocus 只有当focus时才刷新, 否则跳过
-func (podTable *PodTable) renewPodTable(selectRow int, scrollToBeginning, onlyHasFocus bool) {
+func (podTable *PodTable) refresh(selectRow int, scrollToBeginning, onlyHasFocus bool) {
 	kusApp := podTable.portal.kusApp
 	cluster := podTable.portal.cluster
 	ns := podTable.portal.namespace
@@ -336,4 +368,32 @@ func (podTable *PodTable) KillPod(v *Vessel) {
 		// refresh cache
 		podTable.portal.kusApp.Cacher.CacheKuPods(v.cluster, v.ns, false)
 	}()
+}
+
+type pipelineModal struct {
+	*tview.Modal
+	podTable *PodTable
+	kusApp   *KusApp
+}
+
+func newPipelineModal(podTable *PodTable) *pipelineModal {
+	pm := &pipelineModal{
+		Modal:    tview.NewModal(),
+		podTable: podTable,
+		kusApp:   podTable.portal.kusApp,
+	}
+
+	v := podTable.selectedRow
+	ps := wings.PipelinePage("", "", v.container, "", 10)
+	tags := make([]string, 0, 10)
+	for _, p := range ps {
+		tags = append(tags, p.GetTag())
+	}
+
+	pm.AddButtons(tags).
+		// SetText(" deploy ").
+		SetBorder(true).
+		SetTitle(" deploying " + v.container + " ")
+
+	return pm
 }

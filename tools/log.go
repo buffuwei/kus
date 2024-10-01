@@ -15,10 +15,9 @@ const (
 func InitLogger() {
 	Encoder := GetEncoder()
 	WriteSyncer := GetWriteSyncer()
-	LevelEnabler := GetLevelEnabler()
 	// ConsoleEncoder := GetConsoleEncoder()
 	newCore := zapcore.NewTee(
-		zapcore.NewCore(Encoder, WriteSyncer, LevelEnabler), // 写入文件
+		zapcore.NewCore(Encoder, WriteSyncer, zapcore.DebugLevel), // 写入文件
 		// zapcore.NewCore(ConsoleEncoder, zapcore.Lock(os.Stdout), zapcore.DebugLevel), // 写入控制台
 	)
 	logger := zap.New(newCore, zap.AddCaller())
@@ -74,11 +73,6 @@ func GetWriteSyncer() zapcore.WriteSyncer {
 		MaxAge:     30,
 	}
 	return zapcore.AddSync(lumberJackLogger)
-}
-
-// GetLevelEnabler 自定义的LevelEnabler
-func GetLevelEnabler() zapcore.Level {
-	return zapcore.DebugLevel
 }
 
 // cEncodeLevel 自定义日志级别显示

@@ -3,6 +3,7 @@ package view
 import (
 	"buffuwei/kus/kuboard"
 	"buffuwei/kus/tools"
+	"buffuwei/kus/wings"
 	"errors"
 	"fmt"
 	"time"
@@ -13,17 +14,19 @@ import (
 
 type GlobalCacher struct {
 	*cache.Cache
-	kusApp           *KusApp
-	podsReCached     chan PodsCached
-	clustersReCached chan int
+	kusApp            *KusApp
+	podsReCached      chan PodsCached
+	clustersReCached  chan struct{}
+	pipelinesReCached chan struct{}
 }
 
 func (kusApp *KusApp) SetCacher() *KusApp {
 	cache := &GlobalCacher{
-		Cache:            cache.New(60*time.Minute, 60*time.Minute),
-		kusApp:           kusApp,
-		podsReCached:     make(chan PodsCached, 2),
-		clustersReCached: make(chan int, 2),
+		Cache:             cache.New(60*time.Minute, 60*time.Minute),
+		kusApp:            kusApp,
+		podsReCached:      make(chan PodsCached, 2),
+		clustersReCached:  make(chan struct{}, 2),
+		pipelinesReCached: make(chan struct{}, 2),
 	}
 	kusApp.Cacher = cache
 
@@ -49,6 +52,16 @@ func (kusApp *KusApp) SetCacher() *KusApp {
 		}
 	}()
 
+	go func() {
+		zap.S().Debugln("Begin to cache pipelines firstly")
+		cache.CachePipelines()
+		zap.S().Debugln("Begin new ticker")
+		ticker := time.NewTicker(time.Second * 3)
+		for range ticker.C {
+			cache.CachePipelines()
+		}
+	}()
+
 	return kusApp
 }
 
@@ -61,7 +74,7 @@ func (cacher *GlobalCacher) CacheClusters() ([]string, error) {
 	}
 	zap.S().Infof("All clusters: %-v \n", cs)
 	cacher.Set(KEY_CLUSTER, cs, time.Hour)
-	cacher.clustersReCached <- 1
+	cacher.clustersReCached <- struct{}{}
 	return cs, nil
 }
 
@@ -142,4 +155,27 @@ func (cacher *GlobalCacher) GetKuPods(cluster, ns string) ([]*kuboard.KuPod, str
 type UpdatedPods struct {
 	KuPods []*kuboard.KuPod
 	time   string
+}
+
+const KEY_PIPELINE = "key-%s-%s-pipeline" // project(not a git project)-branch
+
+func (cacher *GlobalCacher) CachePipelines() {
+	// TODO: 缓存什么级别的pipeline？
+	// TODO: 如何定义独立的Pipeline Table 的展示？
+	// assets := tools.GetConfig().Assets
+	// for _, asset := range assets {
+	// 	ps := wings.AssetPipelines(&asset.Wingsplatform, 50)
+	// 	if ps != nil {
+	// 		key := fmt.Sprintf(KEY_PIPELINE, asset., app)
+	// 		// zap.S().Debugf("Begin to cache pipelines %s \n", key)
+	// 		cacher.Set(key, ps, time.Hour)
+	// 		cacher.pipelinesReCached <- struct{}{}
+	// 		// zap.S().Debugf("Finished to cache pipelines %s \n", key)
+	// 	}
+	// }
+}
+
+func (cacher *GlobalCacher) GetPipelines() []*wings.Pipeline {
+
+	return []*wings.Pipeline{}
 }

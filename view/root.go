@@ -14,21 +14,23 @@ var CYAN_COLOR = tcell.GetColor("#87CDFA")
 var LOGO_COLOR = tcell.GetColor("#FBA202")
 
 const (
-	PageLogger  string = "logger"
-	PageShell   string = "shell"
-	PagePortal  string = "portal"
-	PageCluster string = "cluster"
+	PageLogger   string = "logger"
+	PageShell    string = "shell"
+	PagePortal   string = "portal"
+	PageCluster  string = "cluster"
+	PagePipeline string = "pipeline"
 )
 
 type KusApp struct {
 	*tview.Application
-	Root    *tview.Pages
-	Cluster *ClusterF
-	Portal  *PortalF
-	Shell   *ShellF
-	Logger  *LoggerF
-	Err     *Toast
-	Cacher  *GlobalCacher
+	Root     *tview.Pages
+	Cluster  *ClusterF
+	Portal   *PortalF
+	Shell    *ShellF
+	Logger   *LoggerF
+	Pipeline *PipelineF
+	Err      *Toast
+	Cacher   *GlobalCacher
 }
 
 func StartApplication() {
@@ -52,6 +54,7 @@ func newKusApp() *KusApp {
 		SetCluster().
 		SetShell().
 		SetLogger().
+		SetPipeline().
 		SetToast()
 
 	conf := tools.GetConfig()
@@ -64,21 +67,17 @@ func newKusApp() *KusApp {
 			AddPage(PageCluster, kusApp.Cluster, true, true)
 	}
 	kusApp.Root.AddPage(PageShell, kusApp.Shell, true, false).
-		AddPage(PageLogger, kusApp.Logger, true, false)
+		AddPage(PageLogger, kusApp.Logger, true, false).
+		AddPage(PagePipeline, kusApp.Pipeline, true, false)
 
 	kusApp.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyCtrlQ {
 			kusApp.Stop()
 		} else if event.Key() == tcell.KeyCtrlC {
 			// prevent ctrl-c to stop
-			return tcell.NewEventKey(tcell.KeyCtrlC, 0, tcell.ModNone)
+			// return tcell.NewEventKey(tcell.KeyCtrlC, 0, tcell.ModNone)
 		}
 		return event
-	})
-
-	kusApp.SetBeforeDrawFunc(func(screen tcell.Screen) bool {
-		kusApp.Portal.topInfo.beforeAppDraw()
-		return false
 	})
 
 	return kusApp

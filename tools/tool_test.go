@@ -134,3 +134,19 @@ func TestBuf(tt *testing.T) {
 	matched = reg.MatchString(" 4add5aed69d0dd39] ERROR [XNIO-1 task-8] - c")
 	tt.Logf("[%v] \n", matched)
 }
+
+func TestGetTimeElapse(tt *testing.T) {
+
+	timeFormat := "2006-01-02T15:04:05+08:00"
+	givenTimeStr := "2024-08-27T09:42:43+08:00"
+	// 解析给定的时间
+	givenTime, err := time.ParseInLocation(timeFormat, givenTimeStr, time.Local)
+	// givenTime, err := time.Parse(timeFormat, givenTimeStr)
+	if err != nil {
+		fmt.Println("Error parsing time:", err)
+		return
+	}
+	fmt.Printf("%v\n", givenTime)
+	// ret := GetTimeElapse(givenTimeStr)
+	// println(ret)
+}
