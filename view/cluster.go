@@ -153,11 +153,15 @@ func setData(table *tview.Table, cacher *GlobalCacher) {
 	assets := tools.GetConfig().Assets
 	for i, asset := range assets {
 		idx := i + 1
+		wings := ""
+		if asset.Wingsplatform != nil {
+			wings = asset.Wingsplatform.Env + " " + asset.Wingsplatform.Regin + " " + asset.Wingsplatform.Branch
+		}
 		table.SetCellSimple(idx, 0, fmt.Sprintf("%d", i))
 		table.SetCellSimple(idx, 1, asset.Cluster)
 		table.SetCellSimple(idx, 2, asset.Namespace)
 		table.SetCellSimple(idx, 3, "-")
-		table.SetCellSimple(idx, 4, asset.Wingsplatform.Env+" "+asset.Wingsplatform.Regin+" "+asset.Wingsplatform.Branch)
+		table.SetCellSimple(idx, 4, wings)
 		table.SetCellSimple(idx, 5, "")
 	}
 }

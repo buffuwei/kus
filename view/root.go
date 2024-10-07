@@ -19,6 +19,7 @@ const (
 	PagePortal   string = "portal"
 	PageCluster  string = "cluster"
 	PagePipeline string = "pipeline"
+	PagePodBoard string = "podboard"
 )
 
 type KusApp struct {

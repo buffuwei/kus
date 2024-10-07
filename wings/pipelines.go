@@ -32,6 +32,7 @@ func AssetPipelines(wsp *tools.Wingsplatform, pageSize int) []*Pipeline {
 }
 
 func PipelinePage(host, project, app, branch string, pageSize int) (pipelines []*Pipeline) {
+	start := time.Now().Nanosecond()
 	url := host + "/api/v1/ci/projects/" + project + "/source-types/GitEvent/pipelines"
 	queryStr := fmt.Sprintf("?current=1&pageSize=%d&application=%s&branch=%s&project=%s", pageSize, app, branch, app)
 	resp, err1 := restyClient.R().Get(url + queryStr)
@@ -46,7 +47,8 @@ func PipelinePage(host, project, app, branch string, pageSize int) (pipelines []
 		zap.S().Errorf("Failed unmarshal wings pipelies: %s\n", err1.Error())
 		return nil
 	}
-
+	end := time.Now().Nanosecond()
+	zap.S().Debugf("Get wings pipelines: %d ns\n", end-start)
 	// zap.S().Debugf("Get wings pipelines: %+v\n", pipelineResp)
 	return pipelineResp.Data.Pipelines
 }

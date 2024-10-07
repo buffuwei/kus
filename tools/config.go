@@ -32,9 +32,9 @@ type Kuboard struct {
 }
 
 type Asset struct {
-	Cluster       string        `yaml:"cluster"`
-	Namespace     string        `yaml:"namespace"`
-	Wingsplatform Wingsplatform `yaml:"wingsplatform,omitempty"`
+	Cluster       string         `yaml:"cluster"`
+	Namespace     string         `yaml:"namespace"`
+	Wingsplatform *Wingsplatform `yaml:"wingsplatform,omitempty"`
 }
 
 type Wingsplatform struct {
@@ -64,7 +64,7 @@ func templateConfig() *Config {
 			{
 				Cluster:   "AWS",
 				Namespace: "default",
-				Wingsplatform: Wingsplatform{
+				Wingsplatform: &Wingsplatform{
 					Host:       "https://wings.example.com",
 					Login:      "https://wings.example2.com/api/login",
 					Project:    "comm",

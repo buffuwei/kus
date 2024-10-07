@@ -28,7 +28,7 @@ func GetPort() int {
 	return port
 }
 
-func openTerm(vessel *Vessel) {
+func openTerm(vessel *Pea) {
 	url := "http://localhost:%d/sh?cluster=%s&ns=%s&pod=%s&container=%s"
 	url = fmt.Sprintf(url, port, vessel.cluster, vessel.ns, vessel.pod, vessel.container)
 	browseURL(url)

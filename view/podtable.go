@@ -19,20 +19,20 @@ type PodTable struct {
 	refresCh    chan Action
 	filterKey   string
 	sortKey     SortKey
-	terminating []VesselID
-	selectedRow *Vessel
+	terminating []peaID
+	selectedRow *Pea
 	actionModal *PodActionModal
 }
 
-type Vessel struct {
+type Pea struct {
 	cluster, ns, pod, container string
 }
 
-func (v Vessel) ID() VesselID {
-	return VesselID(v.cluster + ":" + v.ns + ":" + v.pod + ":" + v.container)
+func (v Pea) ID() peaID {
+	return peaID(v.cluster + ":" + v.ns + ":" + v.pod + ":" + v.container)
 }
 
-type VesselID string
+type peaID string
 type SortKey int
 
 const (
@@ -66,7 +66,7 @@ func (portal *PortalF) setPodtable() *PortalF {
 
 	fistCapture := func(event *tcell.EventKey) *tcell.EventKey {
 		row, _ := podTable.GetSelection()
-		vessel, ok := podTable.GetCell(row, 0).GetReference().(*Vessel)
+		vessel, ok := podTable.GetCell(row, 0).GetReference().(*Pea)
 		if ok {
 			podTable.selectedRow = vessel
 		} else {
@@ -107,7 +107,7 @@ func podTableInputCapture(podTable *PodTable) func(event *tcell.EventKey) *tcell
 		portal := podTable.portal
 		if portal.layout.body == podTable {
 			row, _ := podTable.GetSelection()
-			vessel, ok := podTable.GetCell(row, 0).GetReference().(*Vessel)
+			vessel, ok := podTable.GetCell(row, 0).GetReference().(*Pea)
 			if !ok {
 				zap.S().Errorln("Failed get pod ref vessel")
 				return event
@@ -155,8 +155,7 @@ func podTableInputCapture(podTable *PodTable) func(event *tcell.EventKey) *tcell
 			} else if event.Key() == tcell.KeyCtrlC {
 				portal.kusApp.Stop()
 			} else if event.Key() == tcell.KeyEnter {
-				// TODO:
-				podTable.setPodActionModal2(vessel)
+				newPodBoard(podTable, PagePortal).show()
 				return nil
 			}
 		}
@@ -306,7 +305,7 @@ func (podTable *PodTable) setRow(idx int, p *kuboard.KuPod) {
 	table := podTable.Table
 	color := getColor(p.IsReady, p.AgeSeconds)
 
-	vessel := &Vessel{cluster, ns, p.Name, p.Container}
+	vessel := &Pea{cluster, ns, p.Name, p.Container}
 
 	table.SetCell(idx, 0, newIdxCell(idx, color, vessel))
 	table.SetCell(idx, 1, newCell(vessel.pod, color))
@@ -327,7 +326,7 @@ func (podTable *PodTable) setRow(idx int, p *kuboard.KuPod) {
 		light += "SH "
 	}
 	// podTable.termicating
-	if tools.Contains[VesselID](podTable.terminating, vessel.ID()) {
+	if tools.Contains[peaID](podTable.terminating, vessel.ID()) {
 		light += "Terminating "
 	}
 
@@ -355,13 +354,13 @@ func newCell(text string, textCcolor tcell.Color) *tview.TableCell {
 	return c
 }
 
-func newIdxCell(idx int, textCcolor tcell.Color, vessel *Vessel) *tview.TableCell {
+func newIdxCell(idx int, textCcolor tcell.Color, vessel *Pea) *tview.TableCell {
 	c := newCell(fmt.Sprintf("%d", idx), textCcolor)
 	c.SetReference(vessel)
 	return c
 }
 
-func (podTable *PodTable) KillPod(v *Vessel) {
+func (podTable *PodTable) KillPod(v *Pea) {
 	podTable.terminating = append(podTable.terminating, v.ID())
 	go func() {
 		kuboard.KillPod(v.cluster, v.ns, v.pod)

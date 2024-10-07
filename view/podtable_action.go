@@ -18,7 +18,7 @@ type PodActionModal struct {
 	actionTable *tview.Table
 	podTable    *PodTable
 	kusApp      *KusApp
-	vessel      *Vessel
+	vessel      *Pea
 	stop        chan struct{}
 }
 
@@ -44,7 +44,7 @@ func (podTable *PodTable) NewPodActionModal() *PodActionModal {
 }
 
 // 配置一个空的action模态框List
-func (podTable *PodTable) setPodActionModal2(vessel *Vessel) {
+func (podTable *PodTable) setPodActionModal2(vessel *Pea) {
 	actionTable := tview.NewTable()
 	actionTable.SetSelectable(true, false).SetFixed(1, 0).
 		SetSelectedStyle(tcell.Style{}).SetEvaluateAllRows(true).
@@ -55,7 +55,7 @@ func (podTable *PodTable) setPodActionModal2(vessel *Vessel) {
 		SetBorderStyle(tcell.StyleDefault.Foreground(CYAN_COLOR)).
 		SetTitle(vessel.container)
 
-	wsp := &tools.GetConfig().GetSelectedAsset().Wingsplatform
+	wsp := tools.GetConfig().GetSelectedAsset().Wingsplatform
 
 	setTableData(actionTable, vessel.container, wsp)
 	actionTable.Select(1, 0)

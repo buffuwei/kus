@@ -54,7 +54,7 @@ func renewAllCookie() {
 	}
 }
 
-func renewCookie(username, pswd string, wsp tools.Wingsplatform) string {
+func renewCookie(username, pswd string, wsp *tools.Wingsplatform) string {
 	if wsp.Host == "" || wsp.Login == "" {
 		return ""
 	}
