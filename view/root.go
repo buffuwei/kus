@@ -58,6 +58,12 @@ func newKusApp() *KusApp {
 		SetPipeline().
 		SetToast()
 
+	fn := kusApp.GetBeforeDrawFunc()
+	kusApp.SetBeforeDrawFunc(func(screen tcell.Screen) bool {
+		zap.S().Infof("before draw func called\n")
+		return fn(screen)
+	})
+
 	conf := tools.GetConfig()
 
 	if conf.Selected.Cluster != "" && conf.Selected.Namespace != "" {

@@ -33,8 +33,8 @@ func newPodBoard(podTable *PodTable, previousPage string) *PodBoard {
 	}
 
 	pb.Flex.SetDirection(tview.FlexRow).
-		// AddItem(pb.info, 6, 0, false).
-		AddItem(pb.imageTable, 0, 1, true)
+		AddItem(pb.imageTable, 0, 1, true).
+		AddItem(pb.info, 0, 1, false)
 
 	pb.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyESC {
@@ -56,8 +56,8 @@ func (pb *PodBoard) show() {
 
 func (pb *PodBoard) hide() {
 	zap.S().Infof("hide podboard \n")
-	pb.imageTableStopCh <- struct{}{}
 	pb.kusApp.Root.SwitchToPage(pb.previousPage)
+	pb.imageTableStopCh <- struct{}{}
 	zap.S().Infof("hide podboard end\n")
 }
 
@@ -70,11 +70,20 @@ func (pb *PodBoard) setImageTable() *PodBoard {
 		SetBorderColor(CYAN_COLOR).
 		SetBorderPadding(0, 0, 2, 2)
 
+	pb.imageTable.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyEnter {
+			// TODO: deploy
+		}
+
+		return event
+	})
+
 	wsp := tools.GetConfig().GetSelectedAsset().Wingsplatform
 	if wsp != nil {
 		drawImageTableData(pb, wsp)
 	}
-	ticker := time.NewTicker(2 * time.Second)
+
+	ticker := time.NewTicker(3 * time.Second)
 	go func() {
 		for {
 			select {
@@ -124,7 +133,7 @@ func drawImageTableData(pb *PodBoard, wsp *tools.Wingsplatform) {
 	}
 
 	pb.kusApp.QueueUpdateDraw(setImageTableContent)
-
+	// setImageTableContent()
 }
 
 func refreshImageTableData(pb *PodBoard, wsp *tools.Wingsplatform) {
