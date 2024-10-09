@@ -25,3 +25,18 @@ func TestVerifyCookie(tt *testing.T) {
 		}
 	}
 }
+
+type TT struct {
+	A string
+	B []interface{}
+	C map[string]interface{}
+	D []struct{}
+	E chan int
+}
+
+func TestStruct(t *testing.T) {
+	tt := TT{}
+	fmt.Printf("tt: %+v\n", tt)
+	tt.B = append(tt.B, 1)
+	fmt.Printf("tt: %+v\n", tt)
+}

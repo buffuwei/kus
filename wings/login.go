@@ -11,15 +11,17 @@ import (
 	"encoding/pem"
 	"errors"
 	"log"
+	"runtime/debug"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
-var COOKIE map[string]string = make(map[string]string)
+var _cookie map[string]string = make(map[string]string)
 
-func verifyCookie(cookie string, wsp tools.Wingsplatform) {
+func verifyCookie(cookie string, wsp *tools.Wingsplatform) {
 	resp, err := restyClient.R().
 		SetHeader("Cookie", cookie).
 		Get(wsp.Host + "/api/v1/user/currentUser")
@@ -37,6 +39,18 @@ func verifyCookie(cookie string, wsp tools.Wingsplatform) {
 	}
 }
 
+func init() {
+	zap.S().Infof("init wings components\n")
+	go func() {
+		renewAllCookie()
+		ticker := time.NewTicker(time.Minute * 5)
+		for {
+			<-ticker.C
+			renewAllCookie()
+		}
+	}()
+}
+
 type currentUser struct {
 	Ret  int `json:"ret"`
 	Data struct {
@@ -46,11 +60,21 @@ type currentUser struct {
 }
 
 func renewAllCookie() {
+	defer func() {
+		if err := recover(); err != nil {
+			stack := string(debug.Stack())
+			zap.S().Errorf("renew cookie failed: %s, %s", err, stack)
+		}
+	}()
+
 	kuboard := tools.GetConfig().Kuboard
 	username, pswd := kuboard.Username, kuboard.Password
 	assets := tools.GetConfig().Assets
 	for _, asset := range assets {
-		renewCookie(username, pswd, asset.Wingsplatform)
+		wsp := asset.Wingsplatform
+		if wsp != nil {
+			renewCookie(username, pswd, wsp)
+		}
 	}
 }
 
@@ -67,7 +91,7 @@ func renewCookie(username, pswd string, wsp *tools.Wingsplatform) string {
 		return ""
 	}
 	setCookie := loginCallback(host, code, state)
-	COOKIE[host] = setCookie
+	_cookie[host] = setCookie
 	zap.S().Infof("renew %s cookie : %s\n", host, setCookie)
 	return setCookie
 }

@@ -21,7 +21,6 @@ type PodTable struct {
 	sortKey     SortKey
 	terminating []peaID
 	selectedRow *Pea
-	actionModal *PodActionModal
 }
 
 type Pea struct {
@@ -80,13 +79,6 @@ func (portal *PortalF) setPodtable() *PortalF {
 		return podTableInputCapture(podTable)(event)
 	})
 
-	podTable.SetSelectionChangedFunc(func(row, column int) {
-		zap.S().Debugf("podTable row changed to %d %d \n", row, column)
-		if podTable.actionModal != nil {
-			podTable.actionModal.close()
-		}
-	})
-
 	go func() {
 		for {
 			select {
@@ -137,12 +129,6 @@ func podTableInputCapture(podTable *PodTable) func(event *tcell.EventKey) *tcell
 			} else if event.Key() == tcell.KeyCtrlL {
 				portal.kusApp.Logger.CloseLogger(vessel)
 			} else if event.Key() == tcell.KeyEsc {
-				if podTable.actionModal != nil {
-					if podTable.actionModal.close() {
-						return nil
-					}
-				}
-
 				changed := podTable.portal.resetFilter("")
 				zap.S().Infoln("reset filter", changed)
 				if changed {

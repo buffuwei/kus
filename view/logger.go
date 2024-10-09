@@ -200,7 +200,7 @@ func (lf *LoggerF) OpenLogBackground(vessel *Pea) {
 	logger := lf.GetLogger(vessel)
 	if logger == nil {
 		clipboard.Write(clipboard.FmtText, []byte("Logger not found"))
-		lf.kusApp.ShowErr("Logger not found 😭")
+		lf.kusApp.toastMsg("Logger not found 😭")
 		return
 	}
 	clipboard.Write(clipboard.FmtText, []byte(logger.logFilePath))
@@ -223,7 +223,7 @@ func getTmux(kusApp *KusApp) string {
 	bin, _ := exec.LookPath("tmux")
 
 	if bin == "" {
-		kusApp.ShowErr(`Can not find tmux, try "brew install tmux"`)
+		kusApp.toastMsg(`Can not find tmux, try "brew install tmux"`)
 	}
 
 	return bin

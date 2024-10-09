@@ -48,8 +48,7 @@ func PipelinePage(host, project, app, branch string, pageSize int) (pipelines []
 		return nil
 	}
 	end := time.Now().Nanosecond()
-	zap.S().Debugf("Get wings pipelines: %d ns\n", end-start)
-	// zap.S().Debugf("Get wings pipelines: %+v\n", pipelineResp)
+	zap.S().Infof("Get wings pipelines: %d ns\n", end-start)
 	return pipelineResp.Data.Pipelines
 }
 
@@ -86,9 +85,10 @@ type Runner struct {
 	Type   string `json:"type"`
 }
 
-func Deploy(app string, wsp *tools.Wingsplatform, targetImagTag string) error {
-	// zap.S().Infof("begin pipeline deploy : %s , %s , %s", deployUnit, appName, targetImagTag)
+func Deploy(app string, wsp *tools.Wingsplatform, targetImagTag string) bool {
+	zap.S().Infof("begin pipeline deploy: %s  %+v\n", app, wsp)
 
+	// TODO: parameter registry
 	registry := "aliheyuan-registry-vpc.cn-heyuan.cr.aliyuncs.com"
 	imageName := fmt.Sprintf("%s/%s/%s", registry, wsp.Project, app)
 
@@ -104,7 +104,7 @@ func Deploy(app string, wsp *tools.Wingsplatform, targetImagTag string) error {
 				ImageName:       imageName,
 				HistoryImageTag: "", // not a must
 				ImageTag:        targetImagTag,
-				Image:           imageName + targetImagTag,
+				Image:           imageName + ":" + targetImagTag,
 				ID:              1,
 				Key:             1,
 				HasSet:          true,
@@ -114,18 +114,24 @@ func Deploy(app string, wsp *tools.Wingsplatform, targetImagTag string) error {
 
 	url := wsp.Host + "/api/v1/projects/%s/regions/%s/releases/%s/set-multi-images"
 	url = fmt.Sprintf(url, wsp.Project, wsp.Regin, wsp.DeployCell)
-	resp, err := restyClient.R().
+	resp, err := restyClient.EnableTrace().R().
 		SetHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0").
 		SetHeader("Content-Type", "application/json").
-		SetHeader("Cookie", COOKIE[wsp.Host]).
+		SetHeader("Cookie", _cookie[wsp.Host]).
 		SetBody(deployParam).
 		Post(url)
+	zap.S().Debugf("Cookie: %s\n", _cookie[wsp.Host])
+	zap.S().Debugf("Param: %+v\n", deployParam)
 	if err != nil {
 		zap.S().Errorf("failed deploy %s, %s, %s\n", app, url, err.Error())
-		return err
+		return false
+	}
+	if resp.StatusCode() != 200 {
+		zap.S().Errorf("failed deploy %s, %s, %+v\n", app, url, resp)
+		return false
 	} else {
 		zap.S().Infof("succeed deploy %s, %s, %s\n", app, url, string(resp.Body()))
-		return nil
+		return true
 	}
 }
 

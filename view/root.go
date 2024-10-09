@@ -22,21 +22,31 @@ const (
 	PagePodBoard string = "podboard"
 )
 
+type event string
+
+const (
+	EVENT_PREPARED = "prepared"
+)
+
 type KusApp struct {
 	*tview.Application
-	Root     *tview.Pages
-	Cluster  *ClusterF
-	Portal   *PortalF
-	Shell    *ShellF
-	Logger   *LoggerF
-	Pipeline *PipelineF
-	Err      *Toast
-	Cacher   *GlobalCacher
+	Root          *tview.Pages
+	Cluster       *ClusterF
+	Portal        *PortalF
+	Shell         *ShellF
+	Logger        *LoggerF
+	Pipeline      *PipelineF
+	Toast         *Toast
+	Cacher        *GlobalCacher
+	EventCh       chan event
+	EventHandlers []func(event)
 }
 
 func StartApplication() {
 	prerequisite()
 	kusApp := newKusApp()
+	// kusApp.EventCh <- EVENT_PREPARED
+
 	go kusApp.serv()
 	if err := kusApp.SetRoot(kusApp.Root, true).SetFocus(kusApp.Root).Run(); err != nil {
 		zap.S().Error(err)
@@ -48,7 +58,18 @@ func newKusApp() *KusApp {
 	kusApp := &KusApp{
 		Application: tview.NewApplication().EnableMouse(true).EnablePaste(true),
 		Root:        tview.NewPages(),
+		EventCh:     make(chan event, 10),
 	}
+
+	// go func() {
+	// 	for {
+	// 		evt := <-kusApp.EventCh
+	// 		for i, handler := range kusApp.EventHandlers {
+	// 			zap.S().Debugf("event handler called: %d - %v\n", i, handler)
+	// 			handler(evt)
+	// 		}
+	// 	}
+	// }()
 
 	kusApp.SetCacher().
 		SetPortal().
@@ -56,11 +77,11 @@ func newKusApp() *KusApp {
 		SetShell().
 		SetLogger().
 		SetPipeline().
-		SetToast()
+		setToast()
 
 	fn := kusApp.GetBeforeDrawFunc()
 	kusApp.SetBeforeDrawFunc(func(screen tcell.Screen) bool {
-		zap.S().Infof("before draw func called\n")
+		// zap.S().Infof("before draw func called\n")
 		return fn(screen)
 	})
 

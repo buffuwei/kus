@@ -33,7 +33,7 @@ func newPodBoard(podTable *PodTable, previousPage string) *PodBoard {
 	}
 
 	pb.Flex.SetDirection(tview.FlexRow).
-		AddItem(pb.imageTable, 0, 1, true).
+		AddItem(pb.imageTable, 0, 2, true).
 		AddItem(pb.info, 0, 1, false)
 
 	pb.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
@@ -72,9 +72,17 @@ func (pb *PodBoard) setImageTable() *PodBoard {
 
 	pb.imageTable.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyEnter {
-			// TODO: deploy
+			tag := tagOfSelection(pb.imageTable)
+			wsp := tools.GetConfig().GetSelectedAsset().Wingsplatform
+			if wsp != nil && tag != "" {
+				ok := wings.Deploy(pb.pea.container, wsp, tag)
+				if ok {
+					pb.kusApp.toastMsg("deploy success")
+				} else {
+					pb.kusApp.toastMsg("deploy failed")
+				}
+			}
 		}
-
 		return event
 	})
 
@@ -134,6 +142,16 @@ func drawImageTableData(pb *PodBoard, wsp *tools.Wingsplatform) {
 
 	pb.kusApp.QueueUpdateDraw(setImageTableContent)
 	// setImageTableContent()
+}
+
+func tagOfSelection(table *tview.Table) string {
+	row, _ := table.GetSelection()
+	zap.S().Debugf("row: %v \n", row)
+	ref := table.GetCell(row, 2).Text
+	zap.S().Infof("ref: %v\n", ref)
+	tag := table.GetCell(row, 2).Text
+	zap.S().Debugf("tag: %v\n", tag)
+	return tag
 }
 
 func refreshImageTableData(pb *PodBoard, wsp *tools.Wingsplatform) {
