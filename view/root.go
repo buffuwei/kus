@@ -14,26 +14,39 @@ var CYAN_COLOR = tcell.GetColor("#87CDFA")
 var LOGO_COLOR = tcell.GetColor("#FBA202")
 
 const (
-	PageLogger  string = "logger"
-	PageShell   string = "shell"
-	PagePortal  string = "portal"
-	PageCluster string = "cluster"
+	PageLogger   string = "logger"
+	PageShell    string = "shell"
+	PagePortal   string = "portal"
+	PageCluster  string = "cluster"
+	PagePipeline string = "pipeline"
+	PagePodBoard string = "podboard"
+)
+
+type event string
+
+const (
+	EVENT_PREPARED = "prepared"
 )
 
 type KusApp struct {
 	*tview.Application
-	Root    *tview.Pages
-	Cluster *ClusterF
-	Portal  *PortalF
-	Shell   *ShellF
-	Logger  *LoggerF
-	Err     *Toast
-	Cacher  *GlobalCacher
+	Root          *tview.Pages
+	Cluster       *ClusterF
+	Portal        *PortalF
+	Shell         *ShellF
+	Logger        *LoggerF
+	Pipeline      *PipelineF
+	Toast         *Toast
+	Cacher        *GlobalCacher
+	EventCh       chan event
+	EventHandlers []func(event)
 }
 
 func StartApplication() {
 	prerequisite()
 	kusApp := newKusApp()
+	// kusApp.EventCh <- EVENT_PREPARED
+
 	go kusApp.serv()
 	if err := kusApp.SetRoot(kusApp.Root, true).SetFocus(kusApp.Root).Run(); err != nil {
 		zap.S().Error(err)
@@ -45,14 +58,32 @@ func newKusApp() *KusApp {
 	kusApp := &KusApp{
 		Application: tview.NewApplication().EnableMouse(true).EnablePaste(true),
 		Root:        tview.NewPages(),
+		EventCh:     make(chan event, 10),
 	}
+
+	// go func() {
+	// 	for {
+	// 		evt := <-kusApp.EventCh
+	// 		for i, handler := range kusApp.EventHandlers {
+	// 			zap.S().Debugf("event handler called: %d - %v\n", i, handler)
+	// 			handler(evt)
+	// 		}
+	// 	}
+	// }()
 
 	kusApp.SetCacher().
 		SetPortal().
 		SetCluster().
 		SetShell().
 		SetLogger().
-		SetToast()
+		SetPipeline().
+		setToast()
+
+	fn := kusApp.GetBeforeDrawFunc()
+	kusApp.SetBeforeDrawFunc(func(screen tcell.Screen) bool {
+		// zap.S().Infof("before draw func called\n")
+		return fn(screen)
+	})
 
 	conf := tools.GetConfig()
 
@@ -64,21 +95,17 @@ func newKusApp() *KusApp {
 			AddPage(PageCluster, kusApp.Cluster, true, true)
 	}
 	kusApp.Root.AddPage(PageShell, kusApp.Shell, true, false).
-		AddPage(PageLogger, kusApp.Logger, true, false)
+		AddPage(PageLogger, kusApp.Logger, true, false).
+		AddPage(PagePipeline, kusApp.Pipeline, true, false)
 
 	kusApp.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyCtrlQ {
 			kusApp.Stop()
 		} else if event.Key() == tcell.KeyCtrlC {
 			// prevent ctrl-c to stop
-			return tcell.NewEventKey(tcell.KeyCtrlC, 0, tcell.ModNone)
+			// return tcell.NewEventKey(tcell.KeyCtrlC, 0, tcell.ModNone)
 		}
 		return event
-	})
-
-	kusApp.SetBeforeDrawFunc(func(screen tcell.Screen) bool {
-		kusApp.Portal.topInfo.beforeAppDraw()
-		return false
 	})
 
 	return kusApp

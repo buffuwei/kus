@@ -69,3 +69,28 @@ func RemoveUnprintable(s string) string {
 	}
 	return string(result)
 }
+
+func GetTimeElapse(givenTimeStr string) string {
+	// 定义时间格式
+	timeFormat := "2006-01-02T15:04:05+08:00"
+
+	// 解析给定的时间
+	givenTime, err := time.ParseInLocation(timeFormat, givenTimeStr, time.Local)
+	if err != nil {
+		fmt.Println("Error parsing time:", err)
+		return ""
+	}
+
+	// 获取当前时间
+	currentTime := time.Now().Local()
+	fmt.Printf("%v | %v\n", currentTime, givenTime)
+	// 计算两个时间之间的差
+	diff := currentTime.Sub(givenTime)
+
+	// 根据差值输出结果
+	if diff.Hours() > 1 {
+		return fmt.Sprintf("%d小时以前", int(diff.Hours()))
+	} else {
+		return fmt.Sprintf("%d分钟以前", int(diff.Minutes()))
+	}
+}

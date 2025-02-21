@@ -40,12 +40,18 @@ func (podtable *PortalF) SetTopInfo() *PortalF {
 		}
 	}()
 
+	prevFunc := podtable.kusApp.GetBeforeDrawFunc()
+	bdFunc := func(screen tcell.Screen) bool {
+		if prevFunc != nil {
+			prevFunc(screen)
+		}
+		t.logo.SetText(fmt.Sprintf(LOGO, t.spinner.next(), Version))
+		return false
+	}
+	podtable.kusApp.SetBeforeDrawFunc(bdFunc)
+
 	podtable.topInfo = t
 	return podtable
-}
-
-func (topInfo *TopInfo) beforeAppDraw() {
-	topInfo.logo.SetText(fmt.Sprintf(LOGO, topInfo.spinner.next(), Version))
 }
 
 func (topInfo *TopInfo) handle(msg string) {

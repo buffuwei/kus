@@ -59,7 +59,7 @@ var footfile *tview.TextView = tview.NewTextView().SetText("").SetTextColor(LOGO
 var footer *tview.Flex = tview.NewFlex().SetDirection(tview.FlexColumn).
 	AddItem(footip, 0, 1, false).AddItem(footfile, 0, 1, false)
 
-func (shell *ShellF) Open(v *Vessel) {
+func (shell *ShellF) Open(v *Pea) {
 	exec := shell.GetExector(v)
 	if shell.currExec != exec {
 		shell.currExec = exec
@@ -83,7 +83,7 @@ func (shell *ShellF) Esc() {
 // Include: websocket than read and write msg ; I/O showing i/o message
 type Executor struct {
 	shell       *ShellF
-	vessel      *Vessel
+	vessel      *Pea
 	conn        *websocket.Conn
 	in          *tview.TextArea
 	out         *tview.TextView
@@ -100,14 +100,14 @@ type History struct {
 	posChanged int64 //time.Now().Unix()
 }
 
-func (shell *ShellF) GetExector(v *Vessel) *Executor {
+func (shell *ShellF) GetExector(v *Pea) *Executor {
 	if e, ok := shell.PickExecutor(v); ok {
 		return e
 	}
 	return shell.NewExecutor(v)
 }
 
-func (shell *ShellF) NewExecutor(v *Vessel) *Executor {
+func (shell *ShellF) NewExecutor(v *Pea) *Executor {
 	ctx, cancel := context.WithCancel(context.Background())
 	conn, _ := kuboard.WsExec(v.cluster, v.ns, v.pod, v.container, "sh")
 	exec := &Executor{
@@ -231,7 +231,7 @@ func (shell *ShellF) addExecutor(e *Executor) {
 	shell.kusApp.Portal.ReTopInfo()
 }
 
-func (shell *ShellF) PickExecutor(v *Vessel) (*Executor, bool) {
+func (shell *ShellF) PickExecutor(v *Pea) (*Executor, bool) {
 	if shell.cxecutorsMap[v.cluster+v.ns] == nil {
 		return nil, false
 	}

@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
@@ -15,15 +16,30 @@ func TestConfigDir(t *testing.T) {
 }
 
 func TestReadConfig(t *testing.T) {
-	c := launchConfig()
-	fmt.Printf("%+v", c)
+	fmt.Printf("Begin \n")
+	conf := readConfigFile()
+	jsonStr, _ := json.MarshalIndent(conf, "", " ")
+	fmt.Printf("%s\n", jsonStr)
 }
 
 func TestGetConfig(t *testing.T) {
-	c := GetConfig()
-	fmt.Printf("%+v \n", c)
-	c = GetConfig()
-	fmt.Printf("%+v \n", c)
-	c = GetConfig()
-	fmt.Printf("%+v \n", c)
+	conf := GetConfig()
+	jsonStr, _ := json.MarshalIndent(conf, "", " ")
+	fmt.Printf("%s\n", jsonStr)
+}
+
+func TestNewConfig(tt *testing.T) {
+	config := &Config{}
+	bs, _ := json.MarshalIndent(config, "", " ")
+	fmt.Printf("%s\n", string(bs))
+}
+
+func TestConfig(t *testing.T) {
+	asset := GetConfig().Assets[2]
+	wsp := asset.Wingsplatform
+	t.Logf("start \n")
+	fmt.Printf("begin\n")
+	fmt.Printf("%+v\n", wsp)
+	wspp := &wsp
+	fmt.Printf("%+v\n", wspp)
 }

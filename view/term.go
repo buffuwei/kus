@@ -28,7 +28,7 @@ func GetPort() int {
 	return port
 }
 
-func openTerm(vessel *Vessel) {
+func openTerm(vessel *Pea) {
 	url := "http://localhost:%d/sh?cluster=%s&ns=%s&pod=%s&container=%s"
 	url = fmt.Sprintf(url, port, vessel.cluster, vessel.ns, vessel.pod, vessel.container)
 	browseURL(url)
@@ -202,7 +202,7 @@ func LoadAndAddToRoot(funcMap template.FuncMap, rootTemplate *template.Template,
 		if walkErr != nil {
 			return walkErr
 		}
-		zap.S().Infof("Walk to [%s] \n", path)
+		zap.S().Debugf("Walk to [%s] \n", path)
 		if matched, _ := regexp.MatchString(pattern, path); !d.IsDir() && matched {
 			data, readErr := embedFS.ReadFile(path)
 			if readErr != nil {

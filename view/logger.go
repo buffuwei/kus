@@ -22,7 +22,7 @@ import (
 
 // Logger is a reader from container ws connection and writer to log file
 type Logger struct {
-	vessel      *Vessel
+	vessel      *Pea
 	conn        *websocket.Conn
 	cancel      context.CancelFunc
 	logFile     *os.File
@@ -174,7 +174,7 @@ func (lf *LoggerF) Hide() {
 	zap.S().Infof("exit hide log view \n")
 }
 
-func (lv *LoggerF) OpenLogView(vessel *Vessel) {
+func (lv *LoggerF) OpenLogView(vessel *Pea) {
 	for len(lv.stream) > 0 {
 		<-lv.stream
 	}
@@ -196,18 +196,18 @@ func (lv *LoggerF) OpenLogView(vessel *Vessel) {
 	zap.S().Infof("Finished view log %v \n", vessel)
 }
 
-func (lf *LoggerF) OpenLogBackground(vessel *Vessel) {
+func (lf *LoggerF) OpenLogBackground(vessel *Pea) {
 	logger := lf.GetLogger(vessel)
 	if logger == nil {
 		clipboard.Write(clipboard.FmtText, []byte("Logger not found"))
-		lf.kusApp.ShowErr("Logger not found 😭")
+		lf.kusApp.toastMsg("Logger not found 😭")
 		return
 	}
 	clipboard.Write(clipboard.FmtText, []byte(logger.logFilePath))
 }
 
 // new a logger or get existed logger
-func (lv *LoggerF) GetLogger(vessel *Vessel) *Logger {
+func (lv *LoggerF) GetLogger(vessel *Pea) *Logger {
 	if l := lv.PickLogger(vessel); l != nil {
 		zap.S().Infof("Get existed logger %v \n", vessel)
 		return l
@@ -223,13 +223,13 @@ func getTmux(kusApp *KusApp) string {
 	bin, _ := exec.LookPath("tmux")
 
 	if bin == "" {
-		kusApp.ShowErr(`Can not find tmux, try "brew install tmux"`)
+		kusApp.toastMsg(`Can not find tmux, try "brew install tmux"`)
 	}
 
 	return bin
 }
 
-func (lf *LoggerF) LoggingInTmux(vessel *Vessel) {
+func (lf *LoggerF) LoggingInTmux(vessel *Pea) {
 	l := lf.GetLogger(vessel)
 
 	bin := getTmux(lf.kusApp)
@@ -260,7 +260,7 @@ func (lf *LoggerF) LoggingInTmux(vessel *Vessel) {
 	})
 }
 
-func (lv *LoggerF) newLogger(v *Vessel) (*Logger, error) {
+func (lv *LoggerF) newLogger(v *Pea) (*Logger, error) {
 	conn, err := kuboard.WsLog(v.cluster, v.ns, v.pod, v.container)
 	if err != nil {
 		return nil, err
@@ -278,7 +278,7 @@ func (lv *LoggerF) newLogger(v *Vessel) (*Logger, error) {
 	return logger, nil
 }
 
-func (lv *LoggerF) PickLogger(vessel *Vessel) *Logger {
+func (lv *LoggerF) PickLogger(vessel *Pea) *Logger {
 	if lv.loggersMap[vessel.cluster+vessel.ns] == nil {
 		return nil
 	}
@@ -294,7 +294,7 @@ func (lv *LoggerF) addLogger(l *Logger) {
 	lv.kusApp.Portal.ReTopInfo()
 }
 
-func (lv *LoggerF) CloseLogger(vessel *Vessel) {
+func (lv *LoggerF) CloseLogger(vessel *Pea) {
 	logger := lv.PickLogger(vessel)
 	if logger != nil {
 		zap.S().Infof("Close logger : %v \n", vessel)
@@ -364,7 +364,7 @@ func openFile(filePath string) *os.File {
 	return f
 }
 
-func getLogFilePath(v *Vessel) string {
+func getLogFilePath(v *Pea) string {
 	dir := tools.HomeDir() + "/" + v.cluster
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		os.MkdirAll(dir, 0755)
