@@ -23,7 +23,7 @@ func FormatDuration(elapsed int64) string {
 		return fmt.Sprintf("%dh%dm", hours, minutes)
 	}
 	if days == 0 && hours == 0 && minutes != 0 {
-		return fmt.Sprintf("%dm", minutes)
+		return fmt.Sprintf("%dm%ds", minutes, seconds)
 	}
 	if days == 0 && hours == 0 && minutes == 0 && seconds != 0 {
 		return fmt.Sprintf("%ds", seconds)

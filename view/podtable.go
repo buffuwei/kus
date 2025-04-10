@@ -270,10 +270,17 @@ func (podTable *PodTable) setPodTableContent(pods []*kuboard.KuPod) {
 			col = "Age↓"
 		}
 
+		maxWidth := 0
+		if col == "Addr" {
+			maxWidth = 5
+			zap.S().Infof("maxWidth %d \n", maxWidth)
+		}
+
 		podTable.SetCell(0, i,
 			&tview.TableCell{
-				Text:  col,
-				Align: tview.AlignLeft,
+				Text:     col,
+				Align:    tview.AlignLeft,
+				MaxWidth: maxWidth,
 				// Color:         tcell.ColorWhite,
 				NotSelectable: true,
 			})
@@ -282,6 +289,12 @@ func (podTable *PodTable) setPodTableContent(pods []*kuboard.KuPod) {
 	for i, pod := range pods {
 		podTable.setRow(i+1, pod)
 	}
+
+	podTable.portal.kusApp.SetBeforeDrawFunc(func(screen tcell.Screen) bool {
+		width, _ := screen.Size()
+		zap.S().Infof("screen width %d \n", width)
+		return false
+	})
 
 }
 
@@ -298,9 +311,9 @@ func (podTable *PodTable) setRow(idx int, p *kuboard.KuPod) {
 	table.SetCell(idx, 2, newCell(p.ReadyRatio, color))
 	table.SetCell(idx, 3, newCell(fmt.Sprintf("%d", p.Restarts), color))
 	table.SetCell(idx, 4, newCell(p.Phase, color))
-	table.SetCell(idx, 5, newCell(fmt.Sprintf("%s:%s", p.Ip, p.Port), color))
+	table.SetCell(idx, 5, newCell2(fmt.Sprintf("%s:%s", p.Ip, p.Port), color, 25))
 	table.SetCell(idx, 6, newCell(p.Node, color))
-	table.SetCell(idx, 7, newCell(p.ImageTag, color))
+	table.SetCell(idx, 7, newCell2(p.ImageTag, color, 25))
 	table.SetCell(idx, 8, newCell(p.StartTime, color))
 	table.SetCell(idx, 9, newCell(p.Age, color))
 
@@ -334,14 +347,21 @@ type Action struct {
 	scrollToBeginning bool
 }
 
-func newCell(text string, textCcolor tcell.Color) *tview.TableCell {
-	c := &tview.TableCell{Text: text, Color: textCcolor, BackgroundColor: tcell.GetColor("#000000")}
+func newCell(text string, textColor tcell.Color) *tview.TableCell {
+	c := &tview.TableCell{Text: text, Color: textColor, BackgroundColor: BGColor}
 	c.SetExpansion(1)
 	return c
 }
 
-func newIdxCell(idx int, textCcolor tcell.Color, vessel *Pea) *tview.TableCell {
-	c := newCell(fmt.Sprintf("%d", idx), textCcolor)
+func newCell2(text string, textColor tcell.Color, maxWidth int) *tview.TableCell {
+	c := &tview.TableCell{Text: text, Color: textColor, BackgroundColor: BGColor, MaxWidth: maxWidth}
+	return c
+}
+
+var BGColor = tcell.GetColor("#000000")
+
+func newIdxCell(idx int, textColor tcell.Color, vessel *Pea) *tview.TableCell {
+	c := newCell(fmt.Sprintf("%d", idx), textColor)
 	c.SetReference(vessel)
 	return c
 }

@@ -33,7 +33,7 @@ func newPodBoard(podTable *PodTable, previousPage string) *PodBoard {
 	}
 
 	pb.Flex.SetDirection(tview.FlexRow).
-		AddItem(pb.imageTable, 0, 2, true).
+		AddItem(pb.imageTable, 0, 3, true).
 		AddItem(pb.info, 0, 1, false)
 
 	pb.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
@@ -112,7 +112,7 @@ func (pb *PodBoard) setImageTable() *PodBoard {
 
 // Set image table data and draw
 func drawImageTableData(pb *PodBoard, wsp *tools.Wingsplatform) {
-	ps := wings.AppPipelines(pb.pea.container, wsp, 15)
+	ps := wings.AppPipelines(pb.pea.container, wsp, 20)
 
 	setImageTableContent := func() {
 		table := pb.imageTable
